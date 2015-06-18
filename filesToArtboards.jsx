@@ -18,6 +18,14 @@ function newArtboard(_w,_h) {
     executeAction( cTID('Mk  '), desc6, DialogModes.NO );
 }
 
+function selectAllLayers() {
+    var desc23 = new ActionDescriptor();
+        var ref5 = new ActionReference();
+        ref5.putEnumerated( cTID('Lyr '), cTID('Ordn'), cTID('Trgt') );
+    desc23.putReference( cTID('null'), ref5 );
+    executeAction( sTID('selectAllLayers'), desc23, DialogModes.NO );
+}
+
 function main() {
     var doc = app.documents.add(400, 400, 72, "File1");
     var fileList = app.openDialog("Select your files");
@@ -27,6 +35,7 @@ function main() {
         for (var i = 0; i < fileList.length; i++) {
             app.open(fileList[i]);
             currentDocWidth = app.activeDocument.width.value + 20;
+		    selectAllLayers();
             newArtboard(app.activeDocument.width.value, app.activeDocument.height.value);
             app.activeDocument.activeLayer.name = app.activeDocument.name;
             app.activeDocument.activeLayer.duplicate(doc, ElementPlacement.INSIDE);
@@ -37,7 +46,7 @@ function main() {
             delta = delta + currentDocWidth;
         }
     }
-    app.activeDocument.crop([0,0,app.activeDocument.width,app.activeDocument.height],0,delta);
+    doc.crop([0,0,app.activeDocument.width,app.activeDocument.height],0,delta);
     alert('Done!');
 }
 
