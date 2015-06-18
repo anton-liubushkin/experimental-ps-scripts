@@ -18,24 +18,16 @@ function newArtboard(_name, _w, _h) {
     executeAction(cTID('Mk  '), desc6, DialogModes.NO);
 }
 
-function selectAllLayers() {
-    var desc23 = new ActionDescriptor();
-    var ref5 = new ActionReference();
-    ref5.putEnumerated(cTID('Lyr '), cTID('Ordn'), cTID('Trgt'));
-    desc23.putReference(cTID('null'), ref5);
-    executeAction(sTID('selectAllLayers'), desc23, DialogModes.NO);
-}
-
 function main() {
-    var doc = app.documents.add(400, 400, 72, "File1");
-    var fileList = app.openDialog("Select your files");
-    var delta = 0;
-    var currentDocWidth = 0;
-    if (fileList != null) {
+    var fileList = app.openDialog("Select your files"),
+        delta = 0,
+        currentDocWidth = 0;
+    if (fileList != null && fileList != "") {
+        var doc = app.documents.add(400, 400, 72, "File1");
         for (var i = 0; i < fileList.length; i++) {
             app.open(fileList[i]);
             currentDocWidth = app.activeDocument.width.value + 20;
-            selectAllLayers();
+            app.runMenuItem(sTID('selectAllLayers'));
             newArtboard(app.activeDocument.name, app.activeDocument.width.value, app.activeDocument.height.value);
             app.activeDocument.activeLayer.duplicate(doc, ElementPlacement.INSIDE);
             app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
@@ -44,10 +36,10 @@ function main() {
             }
             delta = delta + currentDocWidth;
         }
+        doc.crop([0, 0, app.activeDocument.width, app.activeDocument.height], 0, delta);
+        app.runMenuItem(charIDToTypeID("FtOn"));
+        alert('Done!');
     }
-    doc.crop([0, 0, app.activeDocument.width, app.activeDocument.height], 0, delta);
-    app.runMenuItem(charIDToTypeID(("FtOn")));
-    alert('Done!');
 }
 
 main();
