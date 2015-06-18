@@ -37,6 +37,7 @@ function main() {
             delta = delta + currentDocWidth;
         }
     }
+    app.activeDocument.crop([0,0,app.activeDocument.width,app.activeDocument.height],0,delta);
     alert('Done!');
 }
 
