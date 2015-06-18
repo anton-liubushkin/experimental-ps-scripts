@@ -1,13 +1,13 @@
 function cTID(s) {return app.charIDToTypeID(s);}
 function sTID(s) {return app.stringIDToTypeID(s);}
 
-function newArtboard(_w,_h) {
+function newArtboard(_name,_w,_h) {
     var desc6 = new ActionDescriptor();
         var ref1 = new ActionReference();
         ref1.putClass( sTID('artboardSection') );
     desc6.putReference( cTID('null'), ref1 );
         var desc7 = new ActionDescriptor();
-        desc7.putString( cTID('Nm  '), """Artboard 1""" );
+        desc7.putString( cTID('Nm  '), _name );
     desc6.putObject( cTID('Usng'), sTID('artboardSection'), desc7 );
         var desc8 = new ActionDescriptor();
         desc8.putDouble( cTID('Top '), 0.000000 );
@@ -36,8 +36,7 @@ function main() {
             app.open(fileList[i]);
             currentDocWidth = app.activeDocument.width.value + 20;
 		    selectAllLayers();
-            newArtboard(app.activeDocument.width.value, app.activeDocument.height.value);
-            app.activeDocument.activeLayer.name = app.activeDocument.name;
+            newArtboard(app.activeDocument.name,app.activeDocument.width.value, app.activeDocument.height.value);
             app.activeDocument.activeLayer.duplicate(doc, ElementPlacement.INSIDE);
             app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
             if (i > 0) {
