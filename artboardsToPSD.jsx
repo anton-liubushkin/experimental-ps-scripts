@@ -3,32 +3,38 @@
 //
 // artboardsToPSD.jsx
 // Written by Anton Lyubushkin
+// version 0.6
 //
 
-try {
-    var docRef = app.activeDocument,
-        allArtboards,
-        artboardsCount = 0,
-        inputFolder = Folder.selectDialog("Select a folder to process");
-    
-    function getAllArtboards() {
-        var ab = [];
-        var theRef = new ActionReference();
-        theRef.putProperty(charIDToTypeID('Prpr'), stringIDToTypeID("artboards"));
-        theRef.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-        var getDescriptor = new ActionDescriptor();
-        getDescriptor.putReference(stringIDToTypeID("null"), theRef);
-        var abDesc = executeAction(charIDToTypeID("getd"), getDescriptor, DialogModes.NO).getObjectValue(stringIDToTypeID("artboards"));
-        var abCount = abDesc.getList(stringIDToTypeID('list')).count;
-        if (abCount > 0) {
-            for (var i = 0; i < abCount; ++i) {
-                var abObj = abDesc.getList(stringIDToTypeID('list')).getObjectValue(i);
-                var abTopIndex = abObj.getInteger(stringIDToTypeID("top"));
-                ab.push(abTopIndex);
 
+var docRef = app.activeDocument,
+    allArtboards,
+    artboardsCount = 0,
+    inputFolder = Folder.selectDialog("Select a folder to process");
+
+if (inputFolder) {
+    function getAllArtboards() {
+        try {
+            var ab = [];
+            var theRef = new ActionReference();
+            theRef.putProperty(charIDToTypeID('Prpr'), stringIDToTypeID("artboards"));
+            theRef.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+            var getDescriptor = new ActionDescriptor();
+            getDescriptor.putReference(stringIDToTypeID("null"), theRef);
+            var abDesc = executeAction(charIDToTypeID("getd"), getDescriptor, DialogModes.NO).getObjectValue(stringIDToTypeID("artboards"));
+            var abCount = abDesc.getList(stringIDToTypeID('list')).count;
+            if (abCount > 0) {
+                for (var i = 0; i < abCount; ++i) {
+                    var abObj = abDesc.getList(stringIDToTypeID('list')).getObjectValue(i);
+                    var abTopIndex = abObj.getInteger(stringIDToTypeID("top"));
+                    ab.push(abTopIndex);
+
+                }
             }
+            return [abCount, ab];
+        } catch (e) {
+            alert(e.line + '\n' + e.message);
         }
-        return [abCount, ab];
     }
 
     function selectLayerByIndex(index, add) {
@@ -77,16 +83,14 @@ try {
         saveAsPSD(artboardName);
         app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
     }
-    
+
     allArtboards = getAllArtboards();
-    
+
     artboardsCount = allArtboards[0];
 
     for (var i = 0; i < artboardsCount; i++) {
         docRef.suspendHistory('Save Artboard as PSD', 'main(' + i + ')');
-        docRef.activeHistoryState = docRef.historyStates[docRef.historyStates.length - 2];
+        app.refresh();
+        app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
     }
-
-} catch (e) {
-    alert(e.line + '\n' + e.message);
 }
