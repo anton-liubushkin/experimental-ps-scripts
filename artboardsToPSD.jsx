@@ -1,11 +1,20 @@
+// artboardsToPSD.jsx - Adobe Photoshop Script
+// Version: 0.6.0
+// Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
+// Website: http://lyubushkin.pro/
+// ============================================================================
+// Installation:
+// 1. Place script in:
+//    PC(32):  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
+//    PC(64):  C:\Program Files\Adobe\Adobe Photoshop CC# (64 Bit)\Presets\Scripts\
+//    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
+// 2. Restart Photoshop
+// 3. Choose File > Scripts > artboardsToPSD
+// ============================================================================
+
 #target photoshop
 
-//
-// artboardsToPSD.jsx
-// Written by Anton Lyubushkin
-// version 0.6
-//
-
+app.bringToFront();
 
 var docRef = app.activeDocument,
     allArtboards,
