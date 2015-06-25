@@ -91,7 +91,7 @@ if (selectedLayers.length == 2) {
 
         }
     } catch (e) {
-        alert(e.line + '\n' + e.message);
+        alert("Oops! These layers cannot be repositioned");
     }
 }
 
