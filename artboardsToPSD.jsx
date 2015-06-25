@@ -1,5 +1,6 @@
 // artboardsToPSD.jsx - Adobe Photoshop Script
 // Version: 0.6.0
+// Requirements: Adobe Photoshop CC 2015, or higher
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://lyubushkin.pro/
 // ============================================================================

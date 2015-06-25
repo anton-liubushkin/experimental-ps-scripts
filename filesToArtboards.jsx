@@ -1,3 +1,22 @@
+// filesToArtboards.jsx - Adobe Photoshop Script
+// Version: 0.4.0
+// Requirements: Adobe Photoshop CC 2015, or higher
+// Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
+// Website: http://lyubushkin.pro/
+// ============================================================================
+// Installation:
+// 1. Place script in:
+//    PC(32):  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
+//    PC(64):  C:\Program Files\Adobe\Adobe Photoshop CC# (64 Bit)\Presets\Scripts\
+//    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
+// 2. Restart Photoshop
+// 3. Choose File > Scripts > filesToArtboards
+// ============================================================================
+
+#target photoshop
+
+app.bringToFront();
+
 function cTID(s) {return app.charIDToTypeID(s);}
 function sTID(s) {return app.stringIDToTypeID(s);}
 
