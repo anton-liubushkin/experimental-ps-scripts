@@ -28,14 +28,14 @@ if (selectedLayers.length == 2) {
                 selectLayerByIndex(selectedLayers[i], false);
                 if (app.activeDocument.activeLayer.typename == "LayerSet") {
                     executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
-                    var xpos = activeDocument.activeLayer.bounds[2] - (activeDocument.activeLayer.bounds[2] - activeDocument.activeLayer.bounds[0]) / 2;
+                    var xpos = activeDocument.activeLayer.bounds[0];
                     var ytop = activeDocument.activeLayer.bounds[1];
                     var ybot = activeDocument.activeLayer.bounds[3];
                     var height = activeDocument.activeLayer.bounds[3] - activeDocument.activeLayer.bounds[1];
                     app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
                     selectLayerByIndex(selectedLayers[i], false);
                 } else {
-                    var xpos = activeDocument.activeLayer.bounds[2] - (activeDocument.activeLayer.bounds[2] - activeDocument.activeLayer.bounds[0]) / 2;
+                    var xpos = activeDocument.activeLayer.bounds[0];
                     var ytop = activeDocument.activeLayer.bounds[1];
                     var ybot = activeDocument.activeLayer.bounds[3];
                     var height = activeDocument.activeLayer.bounds[3] - activeDocument.activeLayer.bounds[1];
