@@ -1,10 +1,20 @@
+// swapPosition.jsx - Adobe Photoshop Script
+// Version: 0.1.0
+// Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
+// Website: http://lyubushkin.pro/
+// ============================================================================
+// Installation:
+// 1. Place script in:
+//    PC(32):  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
+//    PC(64):  C:\Program Files\Adobe\Adobe Photoshop CC# (64 Bit)\Presets\Scripts\
+//    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
+// 2. Restart Photoshop
+// 3. Choose File > Scripts > swapPosition
+// ============================================================================
+
 #target photoshop
 
-//
-// swapPosition.jsx
-// Written by Anton Lyubushkin
-// version 0.1
-//
+app.bringToFront();
 
 var doc = app.activeDocument;
 var selectedLayers = getSelectedLayersIndex(doc);
