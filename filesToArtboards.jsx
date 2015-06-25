@@ -6,8 +6,7 @@
 // ============================================================================
 // Installation:
 // 1. Place script in:
-//    PC(32):  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
-//    PC(64):  C:\Program Files\Adobe\Adobe Photoshop CC# (64 Bit)\Presets\Scripts\
+//    PC:  C:\Program Files\Adobe\Adobe Photoshop CC#\Presets\Scripts\
 //    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
 // 2. Restart Photoshop
 // 3. Choose File > Scripts > filesToArtboards
