@@ -1,5 +1,5 @@
 // swapPosition.jsx - Adobe Photoshop Script
-// Version: 0.1.0
+// Version: 0.2.0
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://lyubushkin.pro/
 // ============================================================================
@@ -22,55 +22,73 @@ var selectedLayers = getSelectedLayersIndex(doc);
 if (selectedLayers.length == 2) {
     try {
         for (var i = 0; selectedLayers.length > i; i++) {
-		  
+
             var sLayers = new Array();
             for (var i = 0, l = selectedLayers.length; i < l; i++) {
                 selectLayerByIndex(selectedLayers[i], false);
-                sLayers.push(activeDocument.activeLayer);
-            }
-		  
-		  var delta0_x = (sLayers[1].bounds[2]-((sLayers[1].bounds[2]-sLayers[1].bounds[0])/2)) - (sLayers[0].bounds[2]-((sLayers[0].bounds[2]-sLayers[0].bounds[0])/2));
-		  var delta1_x = (sLayers[0].bounds[2]-((sLayers[0].bounds[2]-sLayers[0].bounds[0])/2)) - (sLayers[1].bounds[2]-((sLayers[1].bounds[2]-sLayers[1].bounds[0])/2));
-		  
-		  var delta0_y = 0;
-		  var delta1_y = 0;
-		  
-		  function differentHeight() {
-			if (sLayers[1].bounds[3] - sLayers[1].bounds[1] != sLayers[0].bounds[3] - sLayers[0].bounds[1]) {
-			  return true
-			} else {
-			  return false
-			}
-		  }
-		  
-		  function returnSmaller() {
-			if( sLayers[1].bounds[3] - sLayers[1].bounds[1] < sLayers[0].bounds[3] - sLayers[0].bounds[1] ) {
-			  return [sLayers[1], sLayers[0]]
-			} else {
-			  return [sLayers[0], sLayers[1]]
-			}
-		  }
-		  
-		  if (sLayers[1].bounds[1] != sLayers[0].bounds[1]) {
-			if (differentHeight() == true ) {
-			  var smallLyr = returnSmaller();
-			  if (smallLyr[0].bounds[1] < smallLyr[1].bounds[1] || smallLyr[0].bounds[3] > smallLyr[1].bounds[3]) {
-				delta0_y = (sLayers[1].bounds[3]-((sLayers[1].bounds[3]-sLayers[1].bounds[1]))) - (sLayers[0].bounds[3]-((sLayers[0].bounds[3]-sLayers[0].bounds[1])));
-				delta1_y = (sLayers[0].bounds[3]-((sLayers[0].bounds[3]-sLayers[0].bounds[1]))) - (sLayers[1].bounds[3]-((sLayers[1].bounds[3]-sLayers[1].bounds[1])));
-			  }
-			} else {
-			  delta0_y = (sLayers[1].bounds[3]-((sLayers[1].bounds[3]-sLayers[1].bounds[1]))) - (sLayers[0].bounds[3]-((sLayers[0].bounds[3]-sLayers[0].bounds[1])));
-			  delta1_y = (sLayers[0].bounds[3]-((sLayers[0].bounds[3]-sLayers[0].bounds[1]))) - (sLayers[1].bounds[3]-((sLayers[1].bounds[3]-sLayers[1].bounds[1])));
-			}
-		  }
+                if (app.activeDocument.activeLayer.typename == "LayerSet") {
+                    executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                    var xpos = activeDocument.activeLayer.bounds[2] - (activeDocument.activeLayer.bounds[2] - activeDocument.activeLayer.bounds[0]) / 2;
+                    var ytop = activeDocument.activeLayer.bounds[1];
+                    var ybot = activeDocument.activeLayer.bounds[3];
+                    var height = activeDocument.activeLayer.bounds[3] - activeDocument.activeLayer.bounds[1];
+                    app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
+                    selectLayerByIndex(selectedLayers[i], false);
+                } else {
+                    var xpos = activeDocument.activeLayer.bounds[2] - (activeDocument.activeLayer.bounds[2] - activeDocument.activeLayer.bounds[0]) / 2;
+                    var ytop = activeDocument.activeLayer.bounds[1];
+                    var ybot = activeDocument.activeLayer.bounds[3];
+                    var height = activeDocument.activeLayer.bounds[3] - activeDocument.activeLayer.bounds[1];
+                }
 
-		  sLayers[0].translate(delta0_x, delta0_y);
-		  sLayers[1].translate(delta1_x, delta1_y);
-		  
-		  for (var i = 0, l = selectedLayers.length; i < l; i++) {
-              selectLayerByIndex(selectedLayers[i], true);
-          }
-		  
+                sLayers.push([activeDocument.activeLayer, xpos, ytop, ybot, height]);
+            }
+
+            var delta0_y = 0;
+            var delta1_y = 0;
+
+            function differentHeight() {
+                if (sLayers[1][4] != sLayers[0][4]) {
+                    return true
+                } else {
+                    return false
+                }
+            }
+
+            function returnSmaller() {
+                if (sLayers[1][4] < sLayers[0][4]) {
+                    return [sLayers[1][0], sLayers[0][0]]
+                } else {
+                    return [sLayers[0][0], sLayers[1][0]]
+                }
+            }
+
+            if (sLayers[1][2] != sLayers[0][2]) {
+                if (differentHeight() == true) {
+                    var smallLyr = returnSmaller();
+                    if (smallLyr[0].bounds[1] < smallLyr[1].bounds[1] || smallLyr[0].bounds[3] > smallLyr[1].bounds[3]) {
+                        delta0_y = (sLayers[1][3] - ((sLayers[1][3] - sLayers[1][2]))) - (sLayers[0][3] - ((sLayers[0][3] - sLayers[0][2])));
+                        delta1_y = (sLayers[0][3] - ((sLayers[0][3] - sLayers[0][2]))) - (sLayers[1][3] - ((sLayers[1][3] - sLayers[1][2])));
+                    } else {
+                        delta0_y = 0;
+                        delta1_y = 0;
+                    }
+                } else {
+                    delta0_y = (sLayers[1][3] - ((sLayers[1][3] - sLayers[1][2]))) - (sLayers[0][3] - ((sLayers[0][3] - sLayers[0][2])));
+                    delta1_y = (sLayers[0][3] - ((sLayers[0][3] - sLayers[0][2]))) - (sLayers[1][3] - ((sLayers[1][3] - sLayers[1][2])));
+                }
+            }
+
+            var delta0_x = sLayers[1][1] - sLayers[0][1];
+            var delta1_x = sLayers[0][1] - sLayers[1][1];
+
+            sLayers[0][0].translate(delta0_x, delta0_y);
+            sLayers[1][0].translate(delta1_x, delta1_y);
+
+            for (var i = 0, l = selectedLayers.length; i < l; i++) {
+                selectLayerByIndex(selectedLayers[i], true);
+            }
+
         }
     } catch (e) {
         alert(e.line + '\n' + e.message);
@@ -119,10 +137,5 @@ function selectLayerByIndex(index, add) {
     } catch (e) {}
 }
 
-function cTID(s) {
-    return app.charIDToTypeID(s);
-}
-
-function sTID(s) {
-    return app.stringIDToTypeID(s);
-}
+function cTID(s) {return app.charIDToTypeID(s);}
+function sTID(s) {return app.stringIDToTypeID(s);}
