@@ -1,5 +1,5 @@
 // filesToArtboards.jsx - Adobe Photoshop Script
-// Version: 0.4.0
+// Version: 0.5.0
 // Requirements: Adobe Photoshop CC 2015, or higher
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://lyubushkin.pro/
@@ -28,8 +28,8 @@ function newArtboard(_name, _w, _h) {
     desc7.putString(cTID('Nm  '), _name);
     desc6.putObject(cTID('Usng'), sTID('artboardSection'), desc7);
     var desc8 = new ActionDescriptor();
-    desc8.putDouble(cTID('Top '), 0.000000);
-    desc8.putDouble(cTID('Left'), 0.000000);
+    desc8.putDouble(cTID('Top '), 0);
+    desc8.putDouble(cTID('Left'), 0);
     desc8.putDouble(cTID('Btom'), _h);
     desc8.putDouble(cTID('Rght'), _w);
     desc6.putObject(sTID('artboardRect'), sTID('classFloatRect'), desc8);
@@ -54,7 +54,7 @@ function main() {
             }
             delta = delta + currentDocWidth;
         }
-        doc.crop([0, 0, app.activeDocument.width, app.activeDocument.height], 0, delta);
+        doc.crop([0, 0, app.activeDocument.width + delta, app.activeDocument.height]);
         app.runMenuItem(charIDToTypeID("FtOn"));
         alert('Done!');
     }
