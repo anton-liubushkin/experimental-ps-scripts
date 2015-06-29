@@ -1,3 +1,21 @@
+// layerDistributor.jsx - Adobe Photoshop Script
+// Version: 0.3.0
+// Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
+// Website: http://lyubushkin.pro/
+// ============================================================================
+// Installation:
+// 1. Place script in:
+//    PC(32):  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
+//    PC(64):  C:\Program Files\Adobe\Adobe Photoshop CC# (64 Bit)\Presets\Scripts\
+//    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
+// 2. Restart Photoshop
+// 3. Choose File > Scripts > layerDistributor
+// ============================================================================
+
+#target photoshop
+
+app.bringToFront();
+
 try {
     var w = new Window("dialog");
     w.orientation = "column";
@@ -58,9 +76,9 @@ if (w.show() == 1) {
             for (var ix = 0; ix < app.activeDocument.activeLayer.layers.length; ix++) {
 
                 try {
-                    resultLayers.push([app.activeDocument.activeLayer.layers[ix], app.activeDocument.activeLayer.layers[ix].boundsNoEffects[0].value, app.activeDocument.activeLayer.layers[ix].boundsNoEffects[1].value]);
+                    resultLayers.push([app.activeDocument.activeLayer.layers[ix], app.activeDocument.activeLayer.layers[ix].boundsNoEffects[0].value, app.activeDocument.activeLayer.layers[ix].boundsNoEffects[1].value, app.activeDocument.activeLayer.layers[ix].itemIndex]);
                 } catch (j) {
-                    resultLayers.push([app.activeDocument.activeLayer.layers[ix], app.activeDocument.activeLayer.layers[ix].bounds[0].value, app.activeDocument.activeLayer.layers[ix].bounds[1].value]);
+                    resultLayers.push([app.activeDocument.activeLayer.layers[ix], app.activeDocument.activeLayer.layers[ix].bounds[0].value, app.activeDocument.activeLayer.layers[ix].bounds[1].value, app.activeDocument.activeLayer.layers[ix].itemIndex]);
                 }
 
             }
@@ -89,11 +107,30 @@ if (w.show() == 1) {
         if (orientation == "→ Horizontal") {
             sLayers = sLayers.sort(sorterX);
             try {
-                strtPoint = sLayers[0][0].boundsNoEffects[2].value;
+
+                if (sLayers[0][0].typename == "LayerSet") {
+                    app.activeDocument.activeLayer = sLayers[0][0];
+                    executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                    strtPoint = app.activeDocument.activeLayer.boundsNoEffects[2].value;
+                    app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
+                } else {
+                    strtPoint = sLayers[0][0].boundsNoEffects[2].value;
+                }
+
                 for (var i = 1; i < sLayers.length; i++) {
-                    delta = sLayers[i][0].boundsNoEffects[0].value - strtPoint;
-                    sLayers[i][0].translate(-delta + myValue, 0);
-                    strtPoint = sLayers[i][0].boundsNoEffects[2].value;
+                    if (sLayers[i][0].typename == "LayerSet") {
+                        app.activeDocument.activeLayer = sLayers[i][0];
+                        executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                        delta = app.activeDocument.activeLayer.boundsNoEffects[0].value - strtPoint;
+                        strtPoint = app.activeDocument.activeLayer.boundsNoEffects[2].value - delta + myValue;
+                        app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
+                        sLayers[i][0].translate(-delta + myValue, 0);
+                    } else {
+                        delta = sLayers[i][0].boundsNoEffects[0].value - strtPoint;
+                        sLayers[i][0].translate(-delta + myValue, 0);
+                        strtPoint = sLayers[i][0].boundsNoEffects[2].value;
+                    }
+
                 }
             } catch (j) {
                 strtPoint = sLayers[0][0].bounds[2].value;
@@ -109,11 +146,29 @@ if (w.show() == 1) {
         } else {
             sLayers = sLayers.sort(sorterY);
             try {
-                strtPoint = sLayers[0][0].boundsNoEffects[3].value;
+                if (sLayers[0][0].typename == "LayerSet") {
+                    app.activeDocument.activeLayer = sLayers[0][0];
+                    executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                    strtPoint = app.activeDocument.activeLayer.boundsNoEffects[3].value;
+                    app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
+                } else {
+                    strtPoint = sLayers[0][0].boundsNoEffects[3].value;
+                }
+
                 for (var i = 1; i < sLayers.length; i++) {
-                    delta = sLayers[i][0].boundsNoEffects[1].value - strtPoint;
-                    sLayers[i][0].translate(0, -delta + myValue);
-                    strtPoint = sLayers[i][0].boundsNoEffects[3].value;
+                    if (sLayers[i][0].typename == "LayerSet") {
+                        app.activeDocument.activeLayer = sLayers[i][0];
+                        executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                        delta = app.activeDocument.activeLayer.boundsNoEffects[1].value - strtPoint;
+                        strtPoint = app.activeDocument.activeLayer.boundsNoEffects[3].value - delta + myValue;
+                        app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
+                        sLayers[i][0].translate(0, -delta + myValue);
+                    } else {
+                        delta = sLayers[i][0].boundsNoEffects[1].value - strtPoint;
+                        sLayers[i][0].translate(0, -delta + myValue);
+                        strtPoint = sLayers[i][0].boundsNoEffects[3].value;
+                    }
+
                 }
             } catch (j) {
                 strtPoint = sLayers[0][0].bounds[3].value;
@@ -125,7 +180,23 @@ if (w.show() == 1) {
             }
 
         }
-        
+
+        function selectLayerByIndex(index, add) {
+            var ref = new ActionReference();
+            ref.putIndex(charIDToTypeID("Lyr "), index);
+            var desc = new ActionDescriptor();
+            desc.putReference(charIDToTypeID("null"), ref);
+            if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
+            desc.putBoolean(charIDToTypeID("MkVs"), false);
+            try {
+                executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
+            } catch (e) {}
+        }
+
+        for (var ii = 0; ii < sLayers.length; ii++) {
+            selectLayerByIndex(sLayers[ii][3] - 2, true);
+        }
+
         preferences.rulerUnits = originalRulerUnits;
 
     } catch (e) {
