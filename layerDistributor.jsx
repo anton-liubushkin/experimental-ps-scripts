@@ -194,7 +194,7 @@ if (w.show() == 1) {
         }
 
         for (var ii = 0; ii < sLayers.length; ii++) {
-            selectLayerByIndex(sLayers[ii][3] - 2, true);
+            selectLayerByIndex(sLayers[ii][3] - 1, true);
         }
 
         preferences.rulerUnits = originalRulerUnits;
