@@ -51,13 +51,15 @@ if (w.show() == 1) {
         delta = Number(value.text),
         orientation = selected_rbutton(radio_group),
         strtPoint = 0,
-        lyrs = getSelectedLayersInfo();
+        lyrs = getSelectedLayersInfo(),
+        hasLayerSets = false;
 
     try {
         // layerSet fix
         var p = 0;
         for (g in lyrs) {
             if (lyrs[g].layerKind == 7) {
+                hasLayerSets = true;
                 selectLayerById(lyrs[g].id, false);
                 executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
                 var folderInfo = getSelectedLayersInfo();
@@ -71,30 +73,52 @@ if (w.show() == 1) {
         app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - (2 + p - 1)];
     } catch (e) {}
 
-    if (lyrs.length > 1) {
+    try {
+        // remove grouped layers
+        if (hasLayerSets) {
+            var new_array = [];
+            for (var i = 0; i < lyrs.length; i++) {
+                var del = false;
+                for (var j = 0; j < lyrs.length; j++) {
+                    if (lyrs[i].parentIndex == lyrs[j].index && lyrs[i].index != lyrs[j].index) {
+                        del = true;
+                        break;
+                    }
+                }
+                if (!del) {
+                    new_array.push(lyrs[i]);
+                }
+            }
+        } else {
+            var new_array = [];
+            new_array = lyrs;
+        }
+    } catch (e) {}
+
+    if (new_array.length > 1) {
         try {
-            app.activeDocument.suspendHistory("Set " + delta + "px space between " + lyrs.length + " layers", "main()");
+            app.activeDocument.suspendHistory("Set " + delta + "px space between " + new_array.length + " layers", "main()");
 
             function main() {
                 preferences.rulerUnits = Units.PIXELS;
 
                 if (orientation == "→ Horizontal") {
-                    lyrs = lyrs.sort(sorterX);
-                    for (var i = 1; i < lyrs.length; i++) {
-                        strtPoint = lyrs[i - 1].right - lyrs[i].left + strtPoint + delta;
-                        translateLayerById(lyrs[i].id, strtPoint, 0);
+                    new_array = new_array.sort(sorterX);
+                    for (var i = 1; i < new_array.length; i++) {
+                        strtPoint = new_array[i - 1].right - new_array[i].left + strtPoint + delta;
+                        translateLayerById(new_array[i].id, strtPoint, 0);
                     }
                 } else {
-                    lyrs = lyrs.sort(sorterY);
-                    for (var i = 1; i < lyrs.length; i++) {
-                        strtPoint = lyrs[i - 1].bottom - lyrs[i].top + strtPoint + delta;
-                        translateLayerById(lyrs[i].id, 0, strtPoint);
+                    new_array = new_array.sort(sorterY);
+                    for (var i = 1; i < new_array.length; i++) {
+                        strtPoint = new_array[i - 1].bottom - new_array[i].top + strtPoint + delta;
+                        translateLayerById(new_array[i].id, 0, strtPoint);
                     }
                 }
             }
         } catch (o) {}
 
-        selectLayers(lyrs, true);
+        selectLayers(new_array, true);
         preferences.rulerUnits = originalRulerUnits;
 
     } else {
@@ -128,6 +152,7 @@ if (w.show() == 1) {
             lyr.right = bounds.getDouble(stringIDToTypeID("right"));
             lyr.bottom = bounds.getDouble(stringIDToTypeID("bottom"));
             lyr.left = bounds.getDouble(stringIDToTypeID("left"));
+            lyr.parentIndex = getLayerParentAMIndexByAMIndex(lyr.index);
             lyrs.push(lyr);
         }
         return lyrs
@@ -184,6 +209,32 @@ if (w.show() == 1) {
         if (a.top < b.top) return -1;
         if (a.top > b.top) return 1;
         return 0;
+    }
+
+    function getLayerParentAMIndexByAMIndex(idx) {
+        var nestedSets = 0;
+        var layerCount = getNumberOfLayer();
+        for (var l = idx; l <= layerCount; l++) {
+            var layerSection = getLayerSectionByAMIndex(l);
+            if (layerSection == 'layerSectionEnd') nestedSets++;
+            if (layerSection == 'layerSectionStart' && nestedSets <= 0) return l;
+            if (layerSection == 'layerSectionStart' && nestedSets > 0) nestedSets--;
+        }
+
+        function getLayerSectionByAMIndex(idx) {
+            var ref = new ActionReference();
+            ref.putProperty(charIDToTypeID("Prpr"), stringIDToTypeID('layerSection'));
+            ref.putIndex(charIDToTypeID("Lyr "), idx);
+            return typeIDToStringID(executeActionGet(ref).getEnumerationValue(stringIDToTypeID('layerSection')));
+        }
+
+        function getNumberOfLayer() {
+            var ref = new ActionReference();
+            ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
+            var desc = executeActionGet(ref);
+            var numberOfLayer = desc.getInteger(charIDToTypeID("NmbL"));
+            return numberOfLayer;
+        }
     }
 
 }
