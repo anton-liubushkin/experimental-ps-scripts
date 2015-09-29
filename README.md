@@ -6,7 +6,7 @@ Version: 0.1.0
 
 Requirements: Adobe Photoshop CS6, or higher
 
-### layerDistributor.jsx
+### layerSpacer.jsx
 
 Version: 0.3.0
 
