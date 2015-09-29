@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.3.0
+// Version: 0.4.0
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
@@ -53,6 +53,24 @@ if (w.show() == 1) {
         strtPoint = 0,
         lyrs = getSelectedLayersInfo();
 
+    try {
+        // layerSet fix
+        var p = 0;
+        for (g in lyrs) {
+            if (lyrs[g].layerKind == 7) {
+                selectLayerById(lyrs[g].id, false);
+                executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                var folderInfo = getSelectedLayersInfo();
+                lyrs[g].top = folderInfo[0].top;
+                lyrs[g].bottom = folderInfo[0].bottom;
+                lyrs[g].left = folderInfo[0].left;
+                lyrs[g].right = folderInfo[0].right;
+                p = p + 1;
+            }
+        }
+        app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - (2 + p - 1)];
+    } catch (e) {}
+
     if (lyrs.length > 1) {
         try {
             app.activeDocument.suspendHistory("Set " + delta + "px space between " + lyrs.length + " layers", "main()");
@@ -64,19 +82,19 @@ if (w.show() == 1) {
                     lyrs = lyrs.sort(sorterX);
                     for (var i = 1; i < lyrs.length; i++) {
                         strtPoint = lyrs[i - 1].right - lyrs[i].left + strtPoint + delta;
-                        translateLayerByIndex(lyrs[i].index, strtPoint, 0);
+                        translateLayerById(lyrs[i].id, strtPoint, 0);
                     }
                 } else {
                     lyrs = lyrs.sort(sorterY);
                     for (var i = 1; i < lyrs.length; i++) {
                         strtPoint = lyrs[i - 1].bottom - lyrs[i].top + strtPoint + delta;
-                        translateLayerByIndex(lyrs[i].index, 0, strtPoint);
+                        translateLayerById(lyrs[i].id, 0, strtPoint);
                     }
                 }
             }
         } catch (o) {}
 
-        selectLayerByIndex(lyrs, true);
+        selectLayers(lyrs, true);
         preferences.rulerUnits = originalRulerUnits;
 
     } else {
@@ -104,6 +122,8 @@ if (w.show() == 1) {
             } catch (o) {
                 var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("bounds"));
             }
+            lyr.layerKind = executeActionGet(ref2).getInteger(stringIDToTypeID("layerKind"));
+            lyr.id = executeActionGet(ref2).getInteger(stringIDToTypeID("layerID"));
             lyr.top = bounds.getDouble(stringIDToTypeID("top"));
             lyr.right = bounds.getDouble(stringIDToTypeID("right"));
             lyr.bottom = bounds.getDouble(stringIDToTypeID("bottom"));
@@ -113,10 +133,10 @@ if (w.show() == 1) {
         return lyrs
     }
 
-    function translateLayerByIndex(_index, _x, _y) {
+    function translateLayerById(_id, _x, _y) {
         var desc1 = new ActionDescriptor();
         var ref1 = new ActionReference();
-        ref1.putIndex(charIDToTypeID("Lyr "), _index);
+        ref1.putIdentifier(charIDToTypeID("Lyr "), _id);
         desc1.putReference(charIDToTypeID('null'), ref1);
         desc1.putBoolean(charIDToTypeID("MkVs"), false);
         var desc2 = new ActionDescriptor();
@@ -127,10 +147,23 @@ if (w.show() == 1) {
         executeAction(charIDToTypeID('move'), desc1, DialogModes.NO);
     }
 
-    function selectLayerByIndex(lyrs, add) {
+    function selectLayerById(_id, add) {
+        var ref = new ActionReference();
+        ref.putIdentifier(charIDToTypeID("Lyr "), _id);
+        var desc = new ActionDescriptor();
+        desc.putReference(charIDToTypeID("null"), ref);
+        if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
+        desc.putBoolean(charIDToTypeID("MkVs"), false);
+        try {
+            executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
+        } catch (e) {}
+
+    }
+
+    function selectLayers(lyrs, add) {
         for (g in lyrs) {
             var ref = new ActionReference();
-            ref.putIndex(charIDToTypeID("Lyr "), lyrs[g].index);
+            ref.putIdentifier(charIDToTypeID("Lyr "), lyrs[g].id);
             var desc = new ActionDescriptor();
             desc.putReference(charIDToTypeID("null"), ref);
             if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
