@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.4.0
+// Version: 0.5.0
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
@@ -56,7 +56,7 @@ if (w.show() == 1) {
 
     try {
         // layerSet fix
-        var p = 0;
+        var p = 1;
         for (g in lyrs) {
             if (lyrs[g].layerKind == 7) {
                 hasLayerSets = true;
@@ -67,10 +67,10 @@ if (w.show() == 1) {
                 lyrs[g].bottom = folderInfo[0].bottom;
                 lyrs[g].left = folderInfo[0].left;
                 lyrs[g].right = folderInfo[0].right;
-                p = p + 1;
+                p++;
             }
         }
-        app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - (2 + p - 1)];
+        if (hasLayerSets) app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - p];
     } catch (e) {}
 
     try {
