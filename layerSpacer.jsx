@@ -31,7 +31,7 @@ g1.alignChildren = ["center", "center"];
 g1.size = [220, 60];
 g1.orientation = "row";
 g1.add("statictext", undefined, "Set interval");
-var value = g1.add('edittext {text: 0, characters: 3, justify: "center", active: true}');
+var value = g1.add('edittext {text: "auto", characters: 3, justify: "center", active: true}');
 value.size = [40, 25];
 g1.add("statictext", undefined, "px");
 
