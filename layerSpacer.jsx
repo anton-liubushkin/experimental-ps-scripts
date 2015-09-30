@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.5.0
+// Version: 0.6.0
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
@@ -44,7 +44,6 @@ function selected_rbutton(rbuttons) {
             return rbuttons.children[i].text;
 }
 
-
 if (w.show() == 1) {
 
     var originalRulerUnits = preferences.rulerUnits,
@@ -67,6 +66,8 @@ if (w.show() == 1) {
                 lyrs[g].bottom = folderInfo[0].bottom;
                 lyrs[g].left = folderInfo[0].left;
                 lyrs[g].right = folderInfo[0].right;
+                lyrs[g].width = folderInfo[0].width;
+                lyrs[g].height = folderInfo[0].height;
                 p++;
             }
         }
@@ -97,20 +98,44 @@ if (w.show() == 1) {
 
     if (new_array.length > 1) {
         try {
-            app.activeDocument.suspendHistory("Set " + delta + "px space between " + new_array.length + " layers", "main()");
+            if (isNaN(delta)) {
+                app.activeDocument.suspendHistory("Set auto space between " + new_array.length + " layers", "main()");
+            } else {
+                app.activeDocument.suspendHistory("Set " + delta + "px space between " + new_array.length + " layers", "main()");
+            }
 
             function main() {
                 preferences.rulerUnits = Units.PIXELS;
 
+                var fix = 0;
+
                 if (orientation == "→ Horizontal") {
                     new_array = new_array.sort(sorterX);
-                    for (var i = 1; i < new_array.length; i++) {
+                    if (isNaN(delta)) {
+                        fix = 1;
+                        var layersWidth = 0;
+                        var whiteSpace = new_array[new_array.length - 1].left - new_array[0].right;
+                        for (var i = 1; i < new_array.length - 1; i++) {
+                            layersWidth = layersWidth + new_array[i].width;
+                        }
+                        delta = (whiteSpace - layersWidth) / (new_array.length - 1);
+                    }
+                    for (var i = 1; i < new_array.length - fix; i++) {
                         strtPoint = new_array[i - 1].right - new_array[i].left + strtPoint + delta;
                         translateLayerById(new_array[i].id, strtPoint, 0);
                     }
                 } else {
                     new_array = new_array.sort(sorterY);
-                    for (var i = 1; i < new_array.length; i++) {
+                    if (isNaN(delta)) {
+                        fix = 1;
+                        var layersHeight = 0;
+                        var whiteSpace = new_array[new_array.length - 1].top - new_array[0].bottom;
+                        for (var i = 1; i < new_array.length - 1; i++) {
+                            layersHeight = layersHeight + new_array[i].height;
+                        }
+                        delta = (whiteSpace - layersHeight) / (new_array.length - 1);
+                    }
+                    for (var i = 1; i < new_array.length - fix; i++) {
                         strtPoint = new_array[i - 1].bottom - new_array[i].top + strtPoint + delta;
                         translateLayerById(new_array[i].id, 0, strtPoint);
                     }
@@ -152,6 +177,8 @@ if (w.show() == 1) {
             lyr.right = bounds.getDouble(stringIDToTypeID("right"));
             lyr.bottom = bounds.getDouble(stringIDToTypeID("bottom"));
             lyr.left = bounds.getDouble(stringIDToTypeID("left"));
+            lyr.width = bounds.getDouble(stringIDToTypeID("width"));
+            lyr.height = bounds.getDouble(stringIDToTypeID("height"));
             lyr.parentIndex = getLayerParentAMIndexByAMIndex(lyr.index);
             lyrs.push(lyr);
         }
