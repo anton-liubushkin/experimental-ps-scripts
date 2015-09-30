@@ -60,7 +60,7 @@ if (w.show() == 1) {
             if (lyrs[g].layerKind == 7) {
                 hasLayerSets = true;
                 selectLayerById(lyrs[g].id, false);
-                executeAction(stringIDToTypeID("newPlacedLayer"), undefined, DialogModes.NO);
+                executeAction(stringIDToTypeID('mergeLayersNew'), undefined, DialogModes.NO);
                 var folderInfo = getSelectedLayersInfo();
                 lyrs[g].top = folderInfo[0].top;
                 lyrs[g].bottom = folderInfo[0].bottom;
