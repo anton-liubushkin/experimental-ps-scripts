@@ -1,12 +1,12 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.6.1
+// Version: 0.7.2
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
 // Installation:
 // 1. Place script in:
 //    PC:  C:\Program Files (x86)\Adobe\Adobe Photoshop CC#\Presets\Scripts\
-//    Mac:     <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
+//    Mac: <hard drive>/Applications/Adobe Photoshop CC#/Presets/Scripts/
 // 2. Restart Photoshop
 // 3. Choose File > Scripts > layerSpacer
 // ============================================================================
@@ -14,6 +14,7 @@
 #target photoshop
 
 app.bringToFront();
+
 
 var w = new Window("dialog");
 w.orientation = "column";
@@ -55,23 +56,24 @@ if (w.show() == 1) {
 
     try {
         // layerSet fix
-        var p = 1;
+        var p = 0;
         for (g in lyrs) {
-            if (lyrs[g].layerKind == 7) {
+            if (lyrs[g].layerKind == "layerSectionStart") {
                 hasLayerSets = true;
                 selectLayerById(lyrs[g].id, false);
                 executeAction(stringIDToTypeID('mergeLayersNew'), undefined, DialogModes.NO);
-                var folderInfo = getSelectedLayersInfo();
+                var folderInfo = getLayerInfo();
                 lyrs[g].top = folderInfo[0].top;
                 lyrs[g].bottom = folderInfo[0].bottom;
                 lyrs[g].left = folderInfo[0].left;
                 lyrs[g].right = folderInfo[0].right;
                 lyrs[g].width = folderInfo[0].width;
                 lyrs[g].height = folderInfo[0].height;
-                p++;
+                p--;
             }
         }
-        if (hasLayerSets) app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - p];
+        if (hasLayerSets) selectHistoryState(p);
+
     } catch (e) {}
 
     try {
@@ -94,7 +96,9 @@ if (w.show() == 1) {
             var new_array = [];
             new_array = lyrs;
         }
-    } catch (e) {}
+    } catch (e) {
+        alert(e.line + '\n' + e);
+    }
 
     if (new_array.length > 1) {
         try {
@@ -141,7 +145,9 @@ if (w.show() == 1) {
                     }
                 }
             }
-        } catch (o) {}
+        } catch (e) {
+            alert(e.line + '\n' + e);
+        }
 
         selectLayers(new_array, true);
         preferences.rulerUnits = originalRulerUnits;
@@ -151,78 +157,133 @@ if (w.show() == 1) {
     }
 
     function getSelectedLayersInfo() {
-        var lyrs = [];
-        var ref = new ActionReference();
-        ref.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-        var targetLayers = executeActionGet(ref).getList(stringIDToTypeID("targetLayers"));
-        for (var i = 0; i < targetLayers.count; i++) {
-            var lyr = new Object();
+        try {
+            var lyrs = [];
+            var ref = new ActionReference();
+            ref.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+            var targetLayers = executeActionGet(ref).getList(stringIDToTypeID("targetLayers"));
+            for (var i = 0; i < targetLayers.count; i++) {
+                var lyr = new Object();
+                var ref2 = new ActionReference();
+                try {
+                    activeDocument.backgroundLayer;
+                    ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex());
+                    lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex")) - 1;
+                } catch (o) {
+                    ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex() + 1);
+                    lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex"));
+                }
+                try {
+                    var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("boundsNoEffects"));
+                } catch (o) {
+                    var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("bounds"));
+                }
+                lyr.layerKind = typeIDToStringID(executeActionGet(ref2).getEnumerationValue(stringIDToTypeID('layerSection')));
+                lyr.id = executeActionGet(ref2).getInteger(stringIDToTypeID("layerID"));
+                lyr.top = bounds.getDouble(stringIDToTypeID("top"));
+                lyr.right = bounds.getDouble(stringIDToTypeID("right"));
+                lyr.bottom = bounds.getDouble(stringIDToTypeID("bottom"));
+                lyr.left = bounds.getDouble(stringIDToTypeID("left"));
+                try {
+                    lyr.width = bounds.getDouble(stringIDToTypeID("width"));
+                    lyr.height = bounds.getDouble(stringIDToTypeID("height"));
+                } catch (e) {
+                    lyr.width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
+                    lyr.height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
+                }
+                lyr.parentIndex = getLayerParentAMIndexByAMIndex(lyr.index);
+                lyrs.push(lyr);
+            }
+            return lyrs
+        } catch (e) {
+            alert(e.line + '\n' + e);
+        }
+    }
+
+    function getLayerInfo() {
+        try {
+            var lyrs = [];
             var ref2 = new ActionReference();
+            ref2.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+            var lyr = new Object();
             try {
                 activeDocument.backgroundLayer;
-                ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex());
                 lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex")) - 1;
             } catch (o) {
-                ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex() + 1);
                 lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex"));
             }
+            lyr.name = executeActionGet(ref2).getString(stringIDToTypeID("name"));
+            lyr.hasUserMask = executeActionGet(ref2).getBoolean(stringIDToTypeID("hasUserMask"));
+            lyr.hasVectorMask = executeActionGet(ref2).getBoolean(stringIDToTypeID("hasVectorMask"));
+            lyr.layerKind = "layerSectionStart";
+            lyr.id = executeActionGet(ref2).getInteger(stringIDToTypeID("layerID"));
             try {
                 var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("boundsNoEffects"));
             } catch (o) {
                 var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("bounds"));
             }
-            lyr.layerKind = executeActionGet(ref2).getInteger(stringIDToTypeID("layerKind"));
-            lyr.id = executeActionGet(ref2).getInteger(stringIDToTypeID("layerID"));
             lyr.top = bounds.getDouble(stringIDToTypeID("top"));
             lyr.right = bounds.getDouble(stringIDToTypeID("right"));
             lyr.bottom = bounds.getDouble(stringIDToTypeID("bottom"));
             lyr.left = bounds.getDouble(stringIDToTypeID("left"));
-            lyr.width = bounds.getDouble(stringIDToTypeID("width"));
-            lyr.height = bounds.getDouble(stringIDToTypeID("height"));
-            lyr.parentIndex = getLayerParentAMIndexByAMIndex(lyr.index);
+            try {
+                lyr.width = bounds.getDouble(stringIDToTypeID("width"));
+                lyr.height = bounds.getDouble(stringIDToTypeID("height"));
+            } catch (e) {
+                lyr.width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
+                lyr.height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
+            }
             lyrs.push(lyr);
+            return lyrs
+        } catch (e) {
+            alert(e.line + '\n' + e);
         }
-        return lyrs
     }
 
     function translateLayerById(_id, _x, _y) {
-        var desc1 = new ActionDescriptor();
-        var ref1 = new ActionReference();
-        ref1.putIdentifier(charIDToTypeID("Lyr "), _id);
-        desc1.putReference(charIDToTypeID('null'), ref1);
-        desc1.putBoolean(charIDToTypeID("MkVs"), false);
-        var desc2 = new ActionDescriptor();
-        desc2.putUnitDouble(charIDToTypeID('Hrzn'), charIDToTypeID('#Pxl'), _x);
-        desc2.putUnitDouble(charIDToTypeID('Vrtc'), charIDToTypeID('#Pxl'), _y);
-        desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('Ofst'), desc2);
-        executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
-        executeAction(charIDToTypeID('move'), desc1, DialogModes.NO);
+        try {
+            var desc1 = new ActionDescriptor();
+            var ref1 = new ActionReference();
+            ref1.putIdentifier(charIDToTypeID("Lyr "), _id);
+            desc1.putReference(charIDToTypeID('null'), ref1);
+            desc1.putBoolean(charIDToTypeID("MkVs"), false);
+            var desc2 = new ActionDescriptor();
+            desc2.putUnitDouble(charIDToTypeID('Hrzn'), charIDToTypeID('#Pxl'), _x);
+            desc2.putUnitDouble(charIDToTypeID('Vrtc'), charIDToTypeID('#Pxl'), _y);
+            desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('Ofst'), desc2);
+            executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
+            executeAction(charIDToTypeID('move'), desc1, DialogModes.NO);
+        } catch (e) {}
     }
 
     function selectLayerById(_id, add) {
-        var ref = new ActionReference();
-        ref.putIdentifier(charIDToTypeID("Lyr "), _id);
-        var desc = new ActionDescriptor();
-        desc.putReference(charIDToTypeID("null"), ref);
-        if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
-        desc.putBoolean(charIDToTypeID("MkVs"), false);
         try {
-            executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
-        } catch (e) {}
-
-    }
-
-    function selectLayers(lyrs, add) {
-        for (g in lyrs) {
             var ref = new ActionReference();
-            ref.putIdentifier(charIDToTypeID("Lyr "), lyrs[g].id);
+            ref.putIdentifier(charIDToTypeID("Lyr "), _id);
             var desc = new ActionDescriptor();
             desc.putReference(charIDToTypeID("null"), ref);
             if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
             desc.putBoolean(charIDToTypeID("MkVs"), false);
-            try {
+            executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
+        } catch (e) {
+            alert(e.line + '\n' + e);
+        }
+
+    }
+
+    function selectLayers(lyrs, add) {
+        try {
+            for (g in lyrs) {
+                var ref = new ActionReference();
+                ref.putIdentifier(charIDToTypeID("Lyr "), lyrs[g].id);
+                var desc = new ActionDescriptor();
+                desc.putReference(charIDToTypeID("null"), ref);
+                if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
+                desc.putBoolean(charIDToTypeID("MkVs"), false);
                 executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
-            } catch (e) {}
+            }
+        } catch (e) {
+            alert(e.line + '\n' + e);
         }
     }
 
@@ -238,29 +299,45 @@ if (w.show() == 1) {
         return 0;
     }
 
+    function selectHistoryState(_h) {
+        try {
+            var desc1 = new ActionDescriptor();
+            var ref1 = new ActionReference();
+            ref1.putOffset(charIDToTypeID('HstS'), _h);
+            desc1.putReference(charIDToTypeID('null'), ref1);
+            executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
+        } catch (e) {
+            alert(e.line + '\n' + e);
+        }
+    }
+
     function getLayerParentAMIndexByAMIndex(idx) {
-        var nestedSets = 0;
-        var layerCount = getNumberOfLayer();
-        for (var l = idx; l <= layerCount; l++) {
-            var layerSection = getLayerSectionByAMIndex(l);
-            if (layerSection == 'layerSectionEnd') nestedSets++;
-            if (layerSection == 'layerSectionStart' && nestedSets <= 0) return l;
-            if (layerSection == 'layerSectionStart' && nestedSets > 0) nestedSets--;
-        }
+        try {
+            var nestedSets = 0;
+            var layerCount = getNumberOfLayer();
+            for (var l = idx; l <= layerCount; l++) {
+                var layerSection = getLayerSectionByAMIndex(l);
+                if (layerSection == 'layerSectionEnd') nestedSets++;
+                if (layerSection == 'layerSectionStart' && nestedSets <= 0) return l;
+                if (layerSection == 'layerSectionStart' && nestedSets > 0) nestedSets--;
+            }
 
-        function getLayerSectionByAMIndex(idx) {
-            var ref = new ActionReference();
-            ref.putProperty(charIDToTypeID("Prpr"), stringIDToTypeID('layerSection'));
-            ref.putIndex(charIDToTypeID("Lyr "), idx);
-            return typeIDToStringID(executeActionGet(ref).getEnumerationValue(stringIDToTypeID('layerSection')));
-        }
+            function getLayerSectionByAMIndex(idx) {
+                var ref = new ActionReference();
+                ref.putProperty(charIDToTypeID("Prpr"), stringIDToTypeID('layerSection'));
+                ref.putIndex(charIDToTypeID("Lyr "), idx);
+                return typeIDToStringID(executeActionGet(ref).getEnumerationValue(stringIDToTypeID('layerSection')));
+            }
 
-        function getNumberOfLayer() {
-            var ref = new ActionReference();
-            ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
-            var desc = executeActionGet(ref);
-            var numberOfLayer = desc.getInteger(charIDToTypeID("NmbL"));
-            return numberOfLayer;
+            function getNumberOfLayer() {
+                var ref = new ActionReference();
+                ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
+                var desc = executeActionGet(ref);
+                var numberOfLayer = desc.getInteger(charIDToTypeID("NmbL"));
+                return numberOfLayer;
+            }
+        } catch (e) {
+            alert(e.line + '\n' + e);
         }
     }
 
