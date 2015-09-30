@@ -8,7 +8,7 @@ Requirements: Adobe Photoshop CS6, or higher
 
 ### layerSpacer.jsx
 
-Version: 0.3.0
+Version: 0.7.2
 
 Requirements: Adobe Photoshop CS6, or higher
 
