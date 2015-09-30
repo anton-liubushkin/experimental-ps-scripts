@@ -46,7 +46,9 @@ try {
 
     w.show();
     
-} catch (e) {}
+} catch (e) {
+    //alert(e.line + '\n' + e);
+}
 
 function go(_orientation) {
     var originalRulerUnits = preferences.rulerUnits,
@@ -75,8 +77,9 @@ function go(_orientation) {
             }
         }
         if (hasLayerSets) selectHistoryState(p);
-
-    } catch (e) {}
+    } catch (e) {
+        //alert(e.line + '\n' + e);
+    }
 
     try {
         // remove grouped layers
@@ -99,7 +102,7 @@ function go(_orientation) {
             new_array = lyrs;
         }
     } catch (e) {
-        alert(e.line + '\n' + e);
+        //alert(e.line + '\n' + e);
     }
 
     if (new_array.length > 1) {
@@ -148,7 +151,7 @@ function go(_orientation) {
                 }
             }
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
 
         selectLayers(new_array, true);
@@ -198,7 +201,7 @@ function go(_orientation) {
             }
             return lyrs
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
     }
 
@@ -238,7 +241,7 @@ function go(_orientation) {
             lyrs.push(lyr);
             return lyrs
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
     }
 
@@ -255,7 +258,9 @@ function go(_orientation) {
             desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('Ofst'), desc2);
             executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
             executeAction(charIDToTypeID('move'), desc1, DialogModes.NO);
-        } catch (e) {}
+        } catch (e) {
+            //alert(e.line + '\n' + e);
+        }
     }
 
     function selectLayerById(_id, add) {
@@ -268,7 +273,7 @@ function go(_orientation) {
             desc.putBoolean(charIDToTypeID("MkVs"), false);
             executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
 
     }
@@ -285,7 +290,7 @@ function go(_orientation) {
                 executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
             }
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
     }
 
@@ -309,7 +314,7 @@ function go(_orientation) {
             desc1.putReference(charIDToTypeID('null'), ref1);
             executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
     }
 
@@ -339,7 +344,7 @@ function go(_orientation) {
                 return numberOfLayer;
             }
         } catch (e) {
-            alert(e.line + '\n' + e);
+            //alert(e.line + '\n' + e);
         }
     }
 
