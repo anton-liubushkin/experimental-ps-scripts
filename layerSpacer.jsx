@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.7.2
+// Version: 0.8.1
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
@@ -15,42 +15,47 @@
 
 app.bringToFront();
 
-var w = new Window("dialog");
-w.orientation = "column";
-w.alignChildren = ["center", "center"];
+try {
+    var w,
+        input_txt,
+        UI_res;
 
-var radio_group = w.add("group");
-radio_group.orientation = "row";
-radio_group.alignChildren = "left";
-radio_group.add("radiobutton", undefined, "→ Horizontal");
-radio_group.add("radiobutton", undefined, "↓ Vertical");
-radio_group.children[0].value = true;
+    UI_res =
+        "dialog{ text: 'Set interval', preferredSize:[-1, -1], orientation: 'row',\
+            inputs: Group {orientation: 'row', alignChildren:'left',\
+                input_txt: EditText {text:'auto', characters: 5, active: true},\
+            }\
+            buttons: Group{ orientation: 'row', \
+                horizontal_btn: Button {text:'→ Horizontal'},\
+                vertical_btn: Button {text:'↓ Vertical'},\
+            }\
+        }";
 
-var g1 = w.add("panel");
-g1.alignChildren = ["center", "center"];
-g1.size = [220, 60];
-g1.orientation = "row";
-g1.add("statictext", undefined, "Set interval");
-var value = g1.add('edittext {text: "auto", characters: 3, justify: "center", active: true}');
-value.size = [40, 25];
-g1.add("statictext", undefined, "px");
+    w = new Window(UI_res);
+    input_txt = w.inputs.input_txt;
 
-var submit = w.add("button", undefined, "OK");
-submit.size = [220, 40];
+    w.buttons.horizontal_btn.onClick = function () {
+        w.close();
+        go("→ Horizontal");
+    }
 
-function selected_rbutton(rbuttons) {
-    for (var i = 0; i < rbuttons.children.length; i++)
-        if (rbuttons.children[i].value == true)
-            return rbuttons.children[i].text;
-}
+    w.buttons.vertical_btn.onClick = function () {
+        w.close();
+        go("↓ Vertical");
+    }
 
-if (w.show() == 1) {
+    w.show();
+    
+} catch (e) {}
+
+function go(_orientation) {
     var originalRulerUnits = preferences.rulerUnits,
-        delta = Number(value.text),
-        orientation = selected_rbutton(radio_group),
+        delta = Number(input_txt.text),
+        orientation = _orientation,
         strtPoint = 0,
         lyrs = getSelectedLayersInfo(),
         hasLayerSets = false;
+
     try {
         // layerSet fix
         var p = 0;
@@ -70,9 +75,8 @@ if (w.show() == 1) {
             }
         }
         if (hasLayerSets) selectHistoryState(p);
-    } catch (e) {
-        //alert(e.line + '\n' + e);
-    }
+
+    } catch (e) {}
 
     try {
         // remove grouped layers
@@ -95,7 +99,7 @@ if (w.show() == 1) {
             new_array = lyrs;
         }
     } catch (e) {
-        //alert(e.line + '\n' + e);
+        alert(e.line + '\n' + e);
     }
 
     if (new_array.length > 1) {
@@ -105,9 +109,12 @@ if (w.show() == 1) {
             } else {
                 app.activeDocument.suspendHistory("Set " + delta + "px space between " + new_array.length + " layers", "main()");
             }
+
             function main() {
                 preferences.rulerUnits = Units.PIXELS;
+
                 var fix = 0;
+
                 if (orientation == "→ Horizontal") {
                     new_array = new_array.sort(sorterX);
                     if (isNaN(delta)) {
@@ -141,10 +148,12 @@ if (w.show() == 1) {
                 }
             }
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
+
         selectLayers(new_array, true);
         preferences.rulerUnits = originalRulerUnits;
+
     } else {
         alert("Select more then 1 layer");
     }
@@ -189,7 +198,7 @@ if (w.show() == 1) {
             }
             return lyrs
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
     }
 
@@ -229,7 +238,7 @@ if (w.show() == 1) {
             lyrs.push(lyr);
             return lyrs
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
     }
 
@@ -246,9 +255,7 @@ if (w.show() == 1) {
             desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('Ofst'), desc2);
             executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
             executeAction(charIDToTypeID('move'), desc1, DialogModes.NO);
-        } catch (e) {
-            //alert(e.line + '\n' + e);
-        }
+        } catch (e) {}
     }
 
     function selectLayerById(_id, add) {
@@ -261,7 +268,7 @@ if (w.show() == 1) {
             desc.putBoolean(charIDToTypeID("MkVs"), false);
             executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
 
     }
@@ -278,7 +285,7 @@ if (w.show() == 1) {
                 executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
             }
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
     }
 
@@ -302,7 +309,7 @@ if (w.show() == 1) {
             desc1.putReference(charIDToTypeID('null'), ref1);
             executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
     }
 
@@ -316,12 +323,14 @@ if (w.show() == 1) {
                 if (layerSection == 'layerSectionStart' && nestedSets <= 0) return l;
                 if (layerSection == 'layerSectionStart' && nestedSets > 0) nestedSets--;
             }
+
             function getLayerSectionByAMIndex(idx) {
                 var ref = new ActionReference();
                 ref.putProperty(charIDToTypeID("Prpr"), stringIDToTypeID('layerSection'));
                 ref.putIndex(charIDToTypeID("Lyr "), idx);
                 return typeIDToStringID(executeActionGet(ref).getEnumerationValue(stringIDToTypeID('layerSection')));
             }
+
             function getNumberOfLayer() {
                 var ref = new ActionReference();
                 ref.putEnumerated(charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
@@ -330,7 +339,7 @@ if (w.show() == 1) {
                 return numberOfLayer;
             }
         } catch (e) {
-            //alert(e.line + '\n' + e);
+            alert(e.line + '\n' + e);
         }
     }
 
