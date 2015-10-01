@@ -322,7 +322,7 @@ function go(_orientation) {
         try {
             var nestedSets = 0;
             var layerCount = getNumberOfLayer();
-            for (var l = idx; l <= layerCount; l++) {
+            for (var l = idx+1; l <= layerCount; l++) {
                 var layerSection = getLayerSectionByAMIndex(l);
                 if (layerSection == 'layerSectionEnd') nestedSets++;
                 if (layerSection == 'layerSectionStart' && nestedSets <= 0) return l;
