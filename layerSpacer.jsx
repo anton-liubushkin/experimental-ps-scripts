@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.8.1
+// Version: 0.8.2
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
