@@ -1,5 +1,5 @@
 // layerSpacer.jsx - Adobe Photoshop Script
-// Version: 0.8.2
+// Version: 0.8.3
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
 // ============================================================================
@@ -66,13 +66,13 @@ function go(_orientation) {
                 hasLayerSets = true;
                 selectLayerById(lyrs[g].id, false);
                 executeAction(stringIDToTypeID('mergeLayersNew'), undefined, DialogModes.NO);
-                var folderInfo = getLayerInfo();
-                lyrs[g].top = folderInfo[0].top;
-                lyrs[g].bottom = folderInfo[0].bottom;
-                lyrs[g].left = folderInfo[0].left;
-                lyrs[g].right = folderInfo[0].right;
-                lyrs[g].width = folderInfo[0].width;
-                lyrs[g].height = folderInfo[0].height;
+                var layerSize = getLayerSize();
+                lyrs[g].top = layerSize.top;
+                lyrs[g].bottom = layerSize.bottom;
+                lyrs[g].left = layerSize.left;
+                lyrs[g].right = layerSize.right;
+                lyrs[g].width = layerSize.width;
+                lyrs[g].height = layerSize.height;
                 p--;
             }
         }
@@ -205,23 +205,11 @@ function go(_orientation) {
         }
     }
 
-    function getLayerInfo() {
+    function getLayerSize() {
         try {
-            var lyrs = [];
+            var lyr = new Object();
             var ref2 = new ActionReference();
             ref2.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-            var lyr = new Object();
-            try {
-                activeDocument.backgroundLayer;
-                lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex")) - 1;
-            } catch (o) {
-                lyr.index = executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex"));
-            }
-            lyr.name = executeActionGet(ref2).getString(stringIDToTypeID("name"));
-            lyr.hasUserMask = executeActionGet(ref2).getBoolean(stringIDToTypeID("hasUserMask"));
-            lyr.hasVectorMask = executeActionGet(ref2).getBoolean(stringIDToTypeID("hasVectorMask"));
-            lyr.layerKind = "layerSectionStart";
-            lyr.id = executeActionGet(ref2).getInteger(stringIDToTypeID("layerID"));
             try {
                 var bounds = executeActionGet(ref2).getObjectValue(stringIDToTypeID("boundsNoEffects"));
             } catch (o) {
@@ -238,8 +226,7 @@ function go(_orientation) {
                 lyr.width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
                 lyr.height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
             }
-            lyrs.push(lyr);
-            return lyrs
+            return lyr
         } catch (e) {
             //alert(e.line + '\n' + e);
         }
