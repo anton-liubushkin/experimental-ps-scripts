@@ -6,12 +6,6 @@ Version: 0.1.0
 
 Requirements: Adobe Photoshop CS6, or higher
 
-### layerSpacer.jsx
-
-Version: 0.7.2
-
-Requirements: Adobe Photoshop CS6, or higher
-
 ### filesToArtboards.jsx
 
 Version: 0.5.0
