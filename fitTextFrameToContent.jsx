@@ -39,46 +39,35 @@ function collectAllTextLayersIndex() {
 
 function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
     try {
-        var desc1 = new ActionDescriptor(),
-            desc2 = new ActionDescriptor(),
-            desc3 = new ActionDescriptor(),
-            desc4 = new ActionDescriptor(),
-            ref1 = new ActionReference(),
-            list1 = new ActionList(),
-            _height = null,
-            _width = null,
-            topDelta = 0;
+        var desc1 = new ActionDescriptor(), desc2 = new ActionDescriptor(), desc3 = new ActionDescriptor(), desc4 = new ActionDescriptor(), ref1 = new ActionReference(), list1 = new ActionList(), _height = null, _width = null, topDelta = 0, originalHeight = 0, originalWidth = 0, bounds;
+
         if (_index) {
             ref1.putIndex(charIDToTypeID('Lyr '), _index);
         } else {
             ref1.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
         }
         desc1.putReference(charIDToTypeID('null'), ref1);
-        
+
+        originalHeight = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('bottom'));
+        originalWidth = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('right'));
+
         try {
             topDelta = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getObjectValue(stringIDToTypeID('boundingBox')).getDouble(stringIDToTypeID('top'));
-        }catch(o){}
-        
+        } catch (o) {}
+
         if (topDelta < 1) topDelta = 2;
-        
+
         try {
-            var bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("boundsNoEffects"));
+            bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("boundsNoEffects"));
             if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("height"));
             if (fixWidth) _width = bounds.getDouble(stringIDToTypeID("width"));
         } catch (o) {
-            var bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("bounds"));
+            bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("bounds"));
             if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
             if (fixWidth) _width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
         }
 
-        desc3.putEnumerated(stringIDToTypeID("textType"), stringIDToTypeID("textType"), stringIDToTypeID("box"));
-        desc4.putDouble(charIDToTypeID('Top '), 0);
-        desc4.putDouble(charIDToTypeID('Left'), 0);
-
-        var originalHeight = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('bottom'));
-        var originalWidth = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('right'));
-
-        _height = _height + topDelta*2.5 || originalHeight;
+        _height = _height + topDelta * 2.5 || originalHeight;
 
         if (_width && originalWidth - _width > 20) {
             _width += 5;
@@ -86,9 +75,11 @@ function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
             _width = originalWidth;
         }
 
-        if (_height) desc4.putDouble(charIDToTypeID('Btom'), _height);
-        if (_width) desc4.putDouble(charIDToTypeID('Rght'), _width);
-
+        desc3.putEnumerated(stringIDToTypeID("textType"), stringIDToTypeID("textType"), stringIDToTypeID("box"));
+        desc4.putDouble(charIDToTypeID('Top '), 0);
+        desc4.putDouble(charIDToTypeID('Left'), 0);
+        desc4.putDouble(charIDToTypeID('Btom'), _height);
+        desc4.putDouble(charIDToTypeID('Rght'), _width);
         desc3.putObject(stringIDToTypeID("bounds"), charIDToTypeID('Rctn'), desc4);
         list1.putObject(stringIDToTypeID("textShape"), desc3);
         desc2.putList(stringIDToTypeID("textShape"), list1);
