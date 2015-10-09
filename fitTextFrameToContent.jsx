@@ -59,6 +59,8 @@ function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
             topDelta = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getObjectValue(stringIDToTypeID('boundingBox')).getDouble(stringIDToTypeID('top'));
         }catch(o){}
         
+        if (topDelta < 1) topDelta = 2;
+        
         try {
             var bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("boundsNoEffects"));
             if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("height"));
