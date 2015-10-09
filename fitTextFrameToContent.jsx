@@ -16,7 +16,7 @@ function checkTextLayerByIndex(_index) {
             ref.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
         }
         if (executeActionGet(ref).hasKey(stringIDToTypeID('textKey'))) {
-            return _index
+            return true
         } else {
             return null
         }
@@ -76,7 +76,7 @@ function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
         var originalHeight = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('bottom'));
         var originalWidth = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('right'));
 
-        _height = _height + topDelta*2 || originalHeight;
+        _height = _height + topDelta*2.5 || originalHeight;
 
         if (_width && originalWidth - _width > 20) {
             _width += 5;
