@@ -66,8 +66,10 @@ function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
             if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
             if (fixWidth) _width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
         }
-
-        _height = _height + topDelta * 2.5 || originalHeight;
+        
+        topDelta = topDelta * 3;
+        
+        _height = _height + topDelta || originalHeight;
 
         if (_width && originalWidth - _width > 20) {
             _width += 5;
