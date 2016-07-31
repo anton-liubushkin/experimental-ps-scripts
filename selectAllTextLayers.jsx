@@ -1,5 +1,5 @@
 // selectAllTextLayers.jsx - Adobe Photoshop Script
-// Version: 0.1.0
+// Version: 0.2.0
 // Requirements: Adobe Photoshop CC or higher
 // Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
 // Website: http://uberplugins.cc/
@@ -9,7 +9,7 @@
 //    PC:  C:\<Program Files>\Adobe\Adobe Photoshop <version>\Presets\Scripts\
 //    Mac: <hard drive>/Applications/Adobe Photoshop <version>/Presets/Scripts/
 // 2. Restart Photoshop
-// 3. Choose File > Scripts > artboardsToPSD
+// 3. Choose File > Scripts > selectAllTextLayers
 // ============================================================================
 
 #target photoshop
@@ -19,7 +19,11 @@ try {
     app.bringToFront();
     selectAllLayers();
     textLayers = getSelectedTextLayersIndexs();
-    selectLayersByIndex(textLayers);
+    if (textLayers.length > 0) {
+        selectLayersByIndex(textLayers);
+    } else {
+        deselectLayers();
+    }
 
     function selectAllLayers() {
         var desc1 = new ActionDescriptor();
@@ -27,6 +31,14 @@ try {
         ref1.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
         desc1.putReference(charIDToTypeID('null'), ref1);
         executeAction(stringIDToTypeID('selectAllLayers'), desc1, DialogModes.NO);
+    }
+
+    function deselectLayers() {
+        var desc1 = new ActionDescriptor();
+        var ref1 = new ActionReference();
+        ref1.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+        desc1.putReference(charIDToTypeID('null'), ref1);
+        executeAction(stringIDToTypeID('selectNoLayers'), desc1, DialogModes.NO);
     }
 
     function getSelectedTextLayersIndexs() {
@@ -63,10 +75,9 @@ try {
     }
 
     function selectLayersByIndex(_arrayOfIndexes) {
-        var i = 0;
         var desc1 = new ActionDescriptor();
         var ref1 = new ActionReference();
-        for (i in _arrayOfIndexes) {
+        for (var i in _arrayOfIndexes) {
             ref1.putIndex(charIDToTypeID('Lyr '), _arrayOfIndexes[i]);
         }
         desc1.putReference(charIDToTypeID('null'), ref1);
