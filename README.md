@@ -8,5 +8,7 @@ fitTextFrameToContent.jsx
 
 fontSpecToLayerName.jsx
 
+selectAllTextLayers.jsx
+
 swapPosition-mirror.jsx & swapPosition.jsx
 
