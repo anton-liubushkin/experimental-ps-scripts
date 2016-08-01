@@ -1,113 +1,152 @@
-if (checkTextLayerByIndex()) {
-    resizeTextAreaToFitToText(null, true, false);
-} else {
-    var allTextLayersIndex = collectAllTextLayersIndex();
-    for (g in allTextLayersIndex) {
-        resizeTextAreaToFitToText(allTextLayersIndex[g], true, false);
-    }
-}
+// fitTextFrameToContent.jsx - Adobe Photoshop Script
+// Version: 0.6.0
+// Requirements: Adobe Photoshop CC or higher
+// Author: Anton Lyubushkin (nvkz.nemo@gmail.com)
+// Website: http://uberplugins.cc/
+// ============================================================================
+// Installation:
+// 1. Place script in:
+//    PC:  C:\<Program Files>\Adobe\Adobe Photoshop <version>\Presets\Scripts\
+//    Mac: <hard drive>/Applications/Adobe Photoshop <version>/Presets/Scripts/
+// 2. Restart Photoshop
+// 3. Choose File > Scripts > fitTextFrameToContent
+// ============================================================================
 
-function checkTextLayerByIndex(_index) {
-    try {
+#target photoshop
+
+try {
+    app.bringToFront();
+    var originalRulerUnits = preferences.rulerUnits;
+    var docInfo = getDocumentInfo();
+    preferences.rulerUnits = Units.PIXELS;
+
+    selectAllLayers();
+
+    var textLayers = getSelectedTextLayersIndexs();
+
+    if (textLayers.length > 0) {
+        for (var i in textLayers) {
+            fixTextShapeHeight(textLayers[i], docInfo);
+        }
+        alert("Done!");
+    } else {
+        alert("Can't find a TEXT layers in the document");
+    }
+
+    preferences.rulerUnits = originalRulerUnits;
+
+    function fixTextShapeHeight(_idx, docInfo) {
+        try {
+            var desc1 = new ActionDescriptor();
+            var ref1 = new ActionReference();
+            ref1.putIndex(charIDToTypeID('Lyr '), _idx);
+            desc1.putReference(charIDToTypeID('null'), ref1);
+
+            var originalShapeBoxBounds = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape'));
+            var originalTop = originalShapeBoxBounds.getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(charIDToTypeID('Top '));
+            var originalLeft = originalShapeBoxBounds.getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(charIDToTypeID('Left'));
+            var originalBottom = originalShapeBoxBounds.getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(charIDToTypeID('Btom'));
+            var originalRight = originalShapeBoxBounds.getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(charIDToTypeID('Rght'));
+
+            var desc2 = new ActionDescriptor();
+            var list1 = new ActionList();
+            var desc6 = new ActionDescriptor();
+            desc6.putEnumerated(stringIDToTypeID("textType"), stringIDToTypeID("textType"), stringIDToTypeID("box"));
+            desc6.putEnumerated(charIDToTypeID('Ornt'), charIDToTypeID('Ornt'), charIDToTypeID('Hrzn'));
+            var desc7 = new ActionDescriptor();
+            var desc8 = new ActionDescriptor();
+            desc8.putDouble(charIDToTypeID('Top '), originalTop);
+            desc8.putDouble(charIDToTypeID('Left'), originalLeft);
+            desc8.putDouble(charIDToTypeID('Btom'), docInfo.height);
+            desc8.putDouble(charIDToTypeID('Rght'), originalRight);
+            desc6.putObject(stringIDToTypeID("bounds"), charIDToTypeID('Rctn'), desc8);
+            list1.putObject(stringIDToTypeID("textShape"), desc6);
+            desc2.putList(stringIDToTypeID("textShape"), list1);
+            desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('TxLr'), desc2);
+            executeAction(charIDToTypeID('setd'), desc1, DialogModes.NO);
+
+            try {
+                var textBounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("boundsNoEffects"));
+                var textHeight = textBounds.getDouble(stringIDToTypeID("height"));
+            } catch (o) {
+                var textBounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("bounds"));
+                var textHeight = textBounds.getDouble(stringIDToTypeID("bottom")) - textBounds.getDouble(stringIDToTypeID("top"));
+            }
+
+            var desc2 = new ActionDescriptor();
+            var list1 = new ActionList();
+            var desc6 = new ActionDescriptor();
+            desc6.putEnumerated(stringIDToTypeID("textType"), stringIDToTypeID("textType"), stringIDToTypeID("box"));
+            desc6.putEnumerated(charIDToTypeID('Ornt'), charIDToTypeID('Ornt'), charIDToTypeID('Hrzn'));
+            var desc7 = new ActionDescriptor();
+            var desc8 = new ActionDescriptor();
+            desc8.putDouble(charIDToTypeID('Top '), originalTop);
+            desc8.putDouble(charIDToTypeID('Left'), originalLeft);
+            desc8.putDouble(charIDToTypeID('Btom'), textHeight + 20);
+            desc8.putDouble(charIDToTypeID('Rght'), originalRight);
+            desc6.putObject(stringIDToTypeID("bounds"), charIDToTypeID('Rctn'), desc8);
+            list1.putObject(stringIDToTypeID("textShape"), desc6);
+            desc2.putList(stringIDToTypeID("textShape"), list1);
+            desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('TxLr'), desc2);
+            executeAction(charIDToTypeID('setd'), desc1, DialogModes.NO);
+        } catch (e) {}
+    }
+
+    function getDocumentInfo() {
         var ref = new ActionReference();
-        if (_index) {
-            ref.putIndex(charIDToTypeID('Lyr '), _index);
-        } else {
-            ref.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-        }
-        if (executeActionGet(ref).hasKey(stringIDToTypeID('textKey'))) {
-            return true
-        } else {
-            return null
-        }
-    } catch (e) {
-        return null
+        ref.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+        var AMinfo = executeActionGet(ref);
+        var doc = {};
+        doc.name = AMinfo.getString(charIDToTypeID('Ttl '));
+        doc.layers = AMinfo.getInteger(charIDToTypeID('NmbL'));
+        doc.width = AMinfo.getDouble(charIDToTypeID('Wdth'));
+        doc.height = AMinfo.getDouble(charIDToTypeID('Hght'));
+        doc.resolution = AMinfo.getDouble(charIDToTypeID('Rslt'));
+        doc.hasBackground = AMinfo.getBoolean(stringIDToTypeID('hasBackgroundLayer'));
+        return doc
     }
-}
 
-function collectAllTextLayersIndex() {
-    var allTextLayers = [];
-    var layersCount = getLayersCount();
-    var startLoop = Number(!hasBackground());
-    for (var l = startLoop; l <= layersCount; l++) {
-        if (checkTextLayerByIndex(l)) {
-            allTextLayers.push(l);
-        }
-    }
-    return allTextLayers
-}
-
-function resizeTextAreaToFitToText(_index, fixHeight, fixWidth) {
-    try {
-        var desc1 = new ActionDescriptor(), desc2 = new ActionDescriptor(), desc3 = new ActionDescriptor(), desc4 = new ActionDescriptor(), ref1 = new ActionReference(), list1 = new ActionList(), _height = null, _width = null, topDelta = 0, originalHeight = 0, originalWidth = 0, bounds;
-
-        if (_index) {
-            ref1.putIndex(charIDToTypeID('Lyr '), _index);
-        } else {
-            ref1.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-        }
+    function selectAllLayers() {
+        var desc1 = new ActionDescriptor();
+        var ref1 = new ActionReference();
+        ref1.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
         desc1.putReference(charIDToTypeID('null'), ref1);
-
-        originalHeight = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('bottom'));
-        originalWidth = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getList(stringIDToTypeID('textShape')).getObjectValue(0).getObjectValue(stringIDToTypeID('bounds')).getDouble(stringIDToTypeID('right'));
-
-        try {
-            topDelta = executeActionGet(ref1).getObjectValue(charIDToTypeID('Txt ')).getObjectValue(stringIDToTypeID('boundingBox')).getDouble(stringIDToTypeID('top'));
-        } catch (o) {}
-
-        if (topDelta < 1) topDelta = 2;
-
-        try {
-            bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("boundsNoEffects"));
-            if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("height"));
-            if (fixWidth) _width = bounds.getDouble(stringIDToTypeID("width"));
-        } catch (o) {
-            bounds = executeActionGet(ref1).getObjectValue(stringIDToTypeID("bounds"));
-            if (fixHeight) _height = bounds.getDouble(stringIDToTypeID("bottom")) - bounds.getDouble(stringIDToTypeID("top"));
-            if (fixWidth) _width = bounds.getDouble(stringIDToTypeID("right")) - bounds.getDouble(stringIDToTypeID("left"));
-        }
-        
-        topDelta = topDelta * 3;
-        
-        _height = _height + topDelta || originalHeight;
-
-        if (_width && originalWidth - _width > 20) {
-            _width += 5;
-        } else {
-            _width = originalWidth;
-        }
-
-        desc3.putEnumerated(stringIDToTypeID("textType"), stringIDToTypeID("textType"), stringIDToTypeID("box"));
-        desc4.putDouble(charIDToTypeID('Top '), 0);
-        desc4.putDouble(charIDToTypeID('Left'), 0);
-        desc4.putDouble(charIDToTypeID('Btom'), _height);
-        desc4.putDouble(charIDToTypeID('Rght'), _width);
-        desc3.putObject(stringIDToTypeID("bounds"), charIDToTypeID('Rctn'), desc4);
-        list1.putObject(stringIDToTypeID("textShape"), desc3);
-        desc2.putList(stringIDToTypeID("textShape"), list1);
-        desc1.putObject(charIDToTypeID('T   '), charIDToTypeID('TxLr'), desc2);
-        executeAction(charIDToTypeID('setd'), desc1, DialogModes.NO);
-    } catch (e) {
-        //alert(e.line + '\n' + e);
+        executeAction(stringIDToTypeID('selectAllLayers'), desc1, DialogModes.NO);
     }
-}
 
-function hasBackground() {
-    var res = undefined;
-    try {
+    function getSelectedTextLayersIndexs() {
+        var lyrs = [];
         var ref = new ActionReference();
-        ref.putProperty(1349677170, 1315774496);
-        ref.putIndex(1283027488, 0);
-        executeActionGet(ref).getString(1315774496);;
-        res = true;
-    } catch (e) {
-        res = false
+        ref.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
+        if (executeActionGet(ref).hasKey(stringIDToTypeID("targetLayers"))) {
+            var targetLayers = executeActionGet(ref).getList(stringIDToTypeID("targetLayers"));
+            for (var i = 0; i < targetLayers.count; i++) {
+                var ref2 = new ActionReference();
+                try {
+                    activeDocument.backgroundLayer;
+                    ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex());
+                    if (executeActionGet(ref2).hasKey(stringIDToTypeID('textKey'))) lyrs.push(executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex")) - 1);
+                } catch (o) {
+                    ref2.putIndex(charIDToTypeID('Lyr '), targetLayers.getReference(i).getIndex() + 1);
+                    if (executeActionGet(ref2).hasKey(stringIDToTypeID('textKey'))) lyrs.push(executeActionGet(ref2).getInteger(stringIDToTypeID("itemIndex")));
+                }
+            }
+        } else {
+            var ref2 = new ActionReference();
+            ref2.putProperty(charIDToTypeID("Prpr"), charIDToTypeID("ItmI"));
+            ref2.putEnumerated(charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt"));
+            if (app.activeDocument.activeLayer.kind == LayerKind.TEXT) {
+                try {
+                    activeDocument.backgroundLayer;
+                    lyrs.push(executeActionGet(ref2).getInteger(charIDToTypeID("ItmI")) - 1);
+                } catch (o) {
+                    lyrs.push(executeActionGet(ref2).getInteger(charIDToTypeID("ItmI")));
+                }
+            }
+        }
+        return lyrs
     }
-    return res;
-}
 
-function getLayersCount() {
-    var ref = new ActionReference();
-    ref.putEnumerated(charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
-    return executeActionGet(ref).getInteger(charIDToTypeID('NmbL'));
+} catch (e) {
+    alert(e.line + '\n' + e);
 }
